@@ -22,18 +22,18 @@ let stream = null;
 let attachedFile = null;
 
 // ** API Key ของคุณที่นี่ **
-const API_KEY = "AIzaSyC3CT-M4Ei9xt8V2cZqo9OYg8OL9ejXGBA";
+const API_KEY = "AIzaSyBysnrYT1rJFQQvuf18eU4b8_eUo943yBU";
 
 // --- Chat Window Visibility ---
 geminiFab.addEventListener('click', () => {
     geminiChatWindow.classList.remove('hidden');
     setTimeout(() => {
-        geminiChatWindow.classList.remove('transform', 'translate-y-4', 'opacity-0');
+        geminiChatWindow.classList.remove('translate-y-4', 'opacity-0');
     }, 10);
 });
 
 closeGeminiChat.addEventListener('click', () => {
-    geminiChatWindow.classList.add('transform', 'translate-y-4', 'opacity-0');
+    geminiChatWindow.classList.add('translate-y-4', 'opacity-0');
     setTimeout(() => {
         geminiChatWindow.classList.add('hidden');
     }, 300);
@@ -73,9 +73,8 @@ chatForm.addEventListener('submit', async (e) => {
     try {
         await processPrompt(prompt, attachedFile);
     } catch (error) {
-        // This will now only catch very unexpected errors (e.g., from readFileAsBase64)
-        console.error("Unhandled error in submission process:", error);
-        appendMessage('ai', 'ขออภัยครับ เกิดข้อผิดพลาดที่ไม่คาดคิด');
+        console.error("Error processing prompt:", error);
+        appendMessage('ai', 'ขออภัยครับ เกิดข้อผิดพลาดในการประมวลผลคำขอของคุณ กรุณาลองใหม่อีกครั้งในภายหลัง');
     } finally {
         attachedFile = null;
         fileInput.value = '';
@@ -86,60 +85,52 @@ chatForm.addEventListener('submit', async (e) => {
     }
 });
 
-// --- Main Processing Function (REVISED with correct tool name) ---
 async function processPrompt(prompt, file) {
-    const model = 'gemini-1.5-flash-latest';
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
-
-    const parts = [{ text: prompt }];
+    let payload;
+    let apiUrl;
 
     if (file) {
-        // This can throw an error if file reading fails, which will be caught by the outer try/catch
         const base64Data = await readFileAsBase64(file);
-        parts.push({
-            inlineData: {
-                mimeType: file.type,
-                data: base64Data
-            }
-        });
+        payload = {
+            contents: [{
+                role: "user",
+                parts: [
+                    { text: prompt },
+                    {
+                        inlineData: {
+                            mimeType: file.type,
+                            data: base64Data
+                        }
+                    }
+                ]
+            }],
+        };
+        apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${API_KEY}`;
+    } else {
+        payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            tools: [{ "google_search": {} }],
+        };
+        apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${API_KEY}`;
     }
 
-    const payload = {
-        contents: [{ role: "user", parts: parts }],
-        tools: [{ "google_search_retrieval": {} }], // <-- FIXED THIS LINE
-    };
+    const response = await fetchWithRetry(apiUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
 
-    try {
-        const response = await fetchWithRetry(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+    const result = await response.json();
+    const candidate = result.candidates?.[0];
+    let aiResponseText = 'ขออภัยครับ ไม่สามารถให้ข้อมูลได้ในขณะนี้';
 
-        const result = await response.json(); // This can throw if response is not JSON (e.g. CORS error)
-
-        if (!response.ok || result.error) {
-            console.error("Google API Error Response:", result);
-            const errorMessage = result.error?.message || 'API returned an error with no message.';
-            appendMessage('ai', `ขออภัยครับ เกิดข้อผิดพลาดจาก API: ${errorMessage}`);
-            return;
-        }
-
-        const candidate = result.candidates?.[0];
-        const aiResponseText = candidate?.content?.parts?.[0]?.text;
-
-        if (aiResponseText) {
-            appendMessage('ai', aiResponseText);
-        } else {
-            console.warn("No valid text response found in candidate:", candidate);
-            appendMessage('ai', 'ขออภัยครับ Gemini ไม่ได้ส่งข้อความตอบกลับที่ถูกต้อง');
-        }
-
-    } catch (error) {
-        // This will catch network errors or JSON parsing errors.
-        console.error("Error during API call or JSON parsing:", error);
-        appendMessage('ai', `ขออภัยครับ ไม่สามารถประมวลผลคำขอได้ อาจมีปัญหาเกี่ยวกับเครือข่ายหรือการตั้งค่า API Key กรุณาตรวจสอบ Console สำหรับข้อมูลเพิ่มเติม`);
+    if (candidate && candidate.content?.parts?.[0]?.text) {
+        aiResponseText = candidate.content.parts[0].text;
     }
+
+    appendMessage('ai', aiResponseText);
 }
 
 
@@ -149,7 +140,7 @@ function appendMessage(sender, text, sources = null) {
 
     const messageContent = document.createElement('div');
     messageContent.className = `p-3 rounded-lg max-w-lg ${sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai'}`;
-    messageContent.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'); // Render newlines
+    messageContent.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
     const wrapperDiv = document.createElement('div');
     wrapperDiv.className = 'flex items-end gap-2';
@@ -188,13 +179,16 @@ async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url, options);
-            if (response.status === 429) { // Rate limit
+            if (response.status === 429) {
                 console.warn(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
                 await new Promise(res => setTimeout(res, delay));
                 delay *= 2;
                 continue;
             }
-            return response; // Return response even if not ok, to be handled by the caller
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response;
         } catch (error) {
             if (i === retries - 1) throw error;
             console.error(`Fetch failed on attempt ${i + 1}/${retries}. Retrying...`, error);
@@ -365,4 +359,3 @@ function stopCamera() {
         stream = null;
     }
 }
-
