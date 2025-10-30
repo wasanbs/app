@@ -1,0 +1,186 @@
+
+/* === THEME SYSTEM (auto-injected) =============================================== */
+:root {
+  --bg: linear-gradient(180deg, #e9f0ff, #e7edf7);
+  --text: #0f172a;
+  --card-bg: rgba(255,255,255,0.08);
+  --card-border: rgba(255,255,255,0.28);
+  --card-blur: 14px;
+  --card-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+:root[data-theme="glass"] {
+  --bg: linear-gradient(180deg, #e9f0ff, #e7edf7);
+  --text: #0f172a;
+  --card-bg: rgba(255,255,255,0.10);
+  --card-border: rgba(255,255,255,0.45);
+  --card-blur: 16px;
+  --card-shadow: 0 10px 24px rgba(17, 24, 39, 0.10);
+}
+:root[data-theme="flat"] {
+  --bg: #f5f7fb;
+  --text: #111827;
+  --card-bg: rgba(255,255,255,0.92);
+  --card-border: rgba(17,24,39,0.06);
+  --card-blur: 0px;
+  --card-shadow: 0 2px 8px rgba(17, 24, 39, 0.06);
+}
+:root[data-theme="login"] {
+  --bg: radial-gradient(1200px 600px at 20% 10%, #2b6fff33, transparent),
+        radial-gradient(1000px 700px at 90% 60%, #00a3ff22, transparent),
+        #0a58c9;
+  --text: #ecf2ff;
+  --card-bg: rgba(255,255,255,0.12);
+  --card-border: rgba(255,255,255,0.30);
+  --card-blur: 20px;
+  --card-shadow: 0 12px 28px rgba(0,0,0,0.20);
+}
+:root[data-theme="dark"] {
+  --bg: linear-gradient(180deg, #0b1220, #0e172a);
+  --text: #e2e8f0;
+  --card-bg: rgba(255,255,255,0.06);
+  --card-border: rgba(255,255,255,0.16);
+  --card-blur: 12px;
+  --card-shadow: 0 8px 18px rgba(0,0,0,0.35);
+}
+body { background: var(--bg); color: var(--text); }
+.app-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 16px;
+  backdrop-filter: blur(var(--card-blur)) saturate(170%) !important;
+  -webkit-backdrop-filter: blur(var(--card-blur)) saturate(170%) !important;
+  box-shadow: var(--card-shadow) !important;
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.app-card:hover { transform: translateY(-3px); }
+.illustration-container{position:relative!important;width:100%!important;height:300px!important;max-height:300px!important;overflow:hidden!important;border-radius:14px!important;}
+.illustration-container img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important;}
+#theme-switcher{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);box-shadow:0 6px 16px rgba(15,23,42,.12)}
+/* === END THEME SYSTEM ============================================================ */
+
+:root { /* Base font size, will be controlled by JS */ }
+body {
+    font-family: 'Sarabun', 'Inter', sans-serif;
+    background: linear-gradient(to bottom left, #dbeafe, #e0e7ff, #fbcfe8);
+    font-size: 1rem;
+    min-height: 100vh;
+}
+.text-primary { color: #60a5fa; }
+.bg-primary { background-color: #60a5fa; }
+
+/* [แก้ไข] Card Style: Frosted Glass Effect */
+.app-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.4); /* ความโปร่งแสง (ปรับค่าตามชอบ 0.1 - 0.9) */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border-radius: 0.75rem;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid rgba(255, 255, 255, 0.6); /* ขอบขาวโปร่งแสง */
+
+    /* --- เพิ่ม Effect กระจกฝ้า --- */
+    backdrop-filter: blur(8px); /* ค่า blur (ปรับได้) */
+    -webkit-backdrop-filter: blur(8px); /* สำหรับ Safari */
+    /* --- จบการเพิ่ม --- */
+}
+.app-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 10;
+}
+.app-card a { display: flex; width: 100%; height: 100%; border-radius: 0.75rem; }
+
+/* Layouts */
+.layout-grid .apps-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+.layout-compact .apps-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+.layout-list .apps-container { display: flex; flex-direction: column; gap: 0rem; }
+.layout-list .app-card {
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5); border-radius: 0; box-shadow: none;
+    background-color: transparent; border-left:none; border-right:none; border-top:none;
+    /* --- เพิ่ม --- */
+    backdrop-filter: none; /* ลบ effect กระจกฝ้าใน list view */
+    -webkit-backdrop-filter: none;
+    /* --- จบ --- */
+}
+.layout-list .apps-container > .app-card:first-child { border-top: 1px solid rgba(229, 231, 235, 0.5); }
+.layout-list .app-card:hover { background-color: rgba(255, 255, 255, 0.3); transform: none; box-shadow: none; }
+
+/* View Controls */
+.display-options-container .flex.items-center.gap-1,
+.display-options-container .flex.items-center.bg-white\/70 {
+    background-color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(229, 231, 235, 0.3);
+}
+.view-control-btn { background-color: #e5e7eb; border-radius: 0.375rem; transition: all 0.2s; line-height: 0; display: flex !important; align-items: center !important; justify-content: center !important; }
+.view-control-btn:hover { background-color: #d1d5db; }
+.view-control-btn.active { background-color: #60a5fa; color: white; }
+#layout-grid-btn, #layout-compact-btn, #layout-list-btn { width: 36px !important; height: 36px !important; }
+#layout-grid-btn svg, #layout-compact-btn svg, #layout-list-btn svg { width: 14px !important; height: 14px !important; stroke-width: 1.5 !important; }
+#font-size-decrease-btn, #font-size-increase-btn, #reset-defaults-btn { width: 40px !important; height: 40px !important; }
+#font-size-decrease-btn svg, #font-size-increase-btn svg, #reset-defaults-btn svg { width: 18px ; height: 18px; }
+
+/* App Icon Size */
+.app-icon img, .app-icon svg { width: 28px !important; height: 28px !important; object-fit: contain; }
+.app-icon img[src^="https://cdn.simpleicons.org"] { width: 26px !important; height: 26px !important; filter: grayscale(10%); }
+.app-icon img[src^="https://img.icons8.com"] { width: 32px !important; height: 32px !important; }
+
+/* Admin Mode */
+#admin-panel { display: none; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(4px); }
+body.admin-mode #admin-panel { display: block; }
+.admin-controls { display: none; }
+body.admin-mode .admin-controls { display: flex !important; }
+.app-card.sortable-ghost, .category-section.sortable-ghost { background-color: #c7d2fe80; border-radius: 1rem; }
+.drag-handle { display: none; cursor: grab; color: #9ca3af; padding: 0.5rem; }
+body.admin-mode .drag-handle { display: flex; align-items: center; }
+#admin-modal-overlay { transition: opacity 0.3s ease; background-color: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
+#admin-modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+.modal-input { width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 0.375rem; transition: all 0.2s; background-color: #f9fafb; }
+.modal-input:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px #bfdbfe; outline: none; background-color: white;}
+
+/* Profile Dropdown */
+#profile-dropdown { display: none; position: absolute; top: 110%; right: 0; background-color: white; color: #1f2937; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); width: 240px; z-index: 100; overflow: hidden; border: 1px solid #e5e7eb; }
+body.profile-open #profile-dropdown { display: block; }
+#admin-toggle-btn { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; width: 100%; transition: background-color 0.15s ease-in-out; border-bottom: 1px solid #e5e7eb; color: #4b5563; }
+#admin-toggle-btn:hover { background-color: #f3f4f6; }
+#admin-toggle-btn.admin-mode-active { background-color: #FEF2F2; color: #EF4444; font-weight: 500; }
+
+/* Utility */
+.hidden { display: none !important; }
+#recent-apps-section { display: none; }
+
+/* [แก้ไข] Image Fitting */
+.illustration-container svg, .illustration-container img {
+    width: 100%;
+    height: 100%; /* ทำให้รูปภาพปรับความสูงให้เต็มกรอบ */
+    object-fit: contain; /* รักษาอัตราส่วนและให้พอดีกับกรอบ */
+    display: block;
+}
+.illustration-container img {
+    max-height: 250px; /* กำหนดความสูงสูงสุด */
+    /* object-fit: contain; <-- ซ้ำกับข้างบน ลบออกได้ */
+    border-radius: 0.375rem;
+}
+
+/* Header Date/Time */
+#header-date-time-wrapper { display: none; }
+@media (min-width: 768px) { #header-date-time-wrapper { display: block !important; } }
+#header-time { font-size: 0.9rem; }
+.header-logo { filter: brightness(0) invert(1); }
+
+/* Typography */
+.category-title { font-weight: 700; color: #3b82f6; border-bottom-color: #bfdbfe; }
+.app-title { font-weight: 700; color: #1f2937; }
+.app-info { color: #6b7280; }
+#hero-title { color: #3b82f6; font-weight: 700; }
+#hero-subtitle { color: #4b5563; }
+
+/* Admin Buttons */
+#add-category-btn { background-color: #60a5fa; color: white; }
+#add-category-btn:hover { background-color: #3b82f6; }
+#add-app-btn { background-color: #34d399; color: white;}
+#add-app-btn:hover { background-color: #10b981; }
+#admin-modal-save-btn { background-color: #3b82f6; }
+#admin-modal-save-btn:hover { background-color: #2563eb; }
+
+/* Header Style */
+header { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
