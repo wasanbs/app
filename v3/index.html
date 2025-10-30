@@ -19,16 +19,6 @@
 
 </head>
 <body class="text-gray-800">
-<!-- Theme Switcher -->
-<div id="theme-switcher" class="fixed top-20 right-6 z-50 px-3 py-2 rounded-xl">
-  <label for="theme-select" class="text-xs opacity-80 mr-2">Theme</label>
-  <select id="theme-select" class="px-2 py-1 rounded-md border text-sm bg-white/80">
-    <option value="glass">Glass</option>
-    <option value="flat">Flat</option>
-    <option value="login">Login</option>
-    <option value="dark">Dark</option>
-  </select>
-</div>
 
     <header class="bg-primary text-white shadow-md sticky top-0 z-50">
        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,5 +123,33 @@
     <button id="gemini-fab" class="fixed bottom-8 right-8 bg-primary text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors z-40"> <span class="text-3xl">🤖</span> </button>
 
     <script src="app.js"></script>
-    <script src="gemini-logic.js"></script> </body>
+    <script src="gemini-logic.js"></script> 
+<!-- Floating Theme Button -->
+<div id="theme-toggle" class="theme-toggle-btn" title="Themes & Gemini">🎨</div>
+
+<!-- Slide-out Theme Panel -->
+<div id="theme-panel" class="theme-panel hidden">
+  <div class="theme-header">
+    <span>🎨 Themes</span>
+    <button id="close-theme" aria-label="Close">✕</button>
+  </div>
+  <div class="theme-options">
+    <label><input type="radio" name="theme" value="glass"> Glass</label>
+    <label><input type="radio" name="theme" value="flat"> Flat</label>
+    <label><input type="radio" name="theme" value="minimal"> Minimal</label>
+    <label><input type="radio" name="theme" value="login"> Login</label>
+    <label><input type="radio" name="theme" value="dark"> Dark</label>
+    <label><input type="radio" name="theme" value="rainbow"> Rainbow</label>
+    <label><input type="radio" name="theme" value="pastel"> Pastel</label>
+  </div>
+  <div class="divider"></div>
+  <div class="color-picker-section">
+    <label for="customColor">🎨 Custom</label>
+    <input type="color" id="customColor" value="#e9f0ff" />
+  </div>
+  <div class="divider"></div>
+  <button id="gemini-btn" class="gemini-btn">🤖 Gemini Chat</button>
+</div>
+
+</body>
 </html>

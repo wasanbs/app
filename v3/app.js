@@ -60,31 +60,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// === THEME SWITCHER (added) =====================================
+// === THEME PANEL + COLOR PICKER + GEMINI HOOK ===
 (function(){
-  const THEME_KEY = 'portal_theme';
+  const KEY = 'portal_theme';
+  const KEY_CUSTOM = 'portal_bg_custom';
+
   function applyTheme(theme){
     document.documentElement.setAttribute('data-theme', theme);
-    const sel = document.getElementById('theme-select');
-    if (sel && sel.value !== theme) sel.value = theme;
+    // tick radio
+    document.querySelectorAll('input[name="theme"]').forEach(r=>{ if(r.value===theme) r.checked = true; });
   }
+
   function initTheme(){
-    let theme = localStorage.getItem(THEME_KEY);
-    if (!theme) {
-      theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'glass';
-    }
-    applyTheme(theme);
+    let t = localStorage.getItem(KEY);
+    if(!t){ t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'glass'; }
+    applyTheme(t);
+    // restore custom color (overrides bg)
+    const saved = localStorage.getItem(KEY_CUSTOM);
+    if(saved){ document.documentElement.style.setProperty('--bg', saved); const cp=document.getElementById('customColor'); if(cp) cp.value=saved; }
   }
+
   document.addEventListener('DOMContentLoaded', () => {
     initTheme();
-    const sel = document.getElementById('theme-select');
-    if (sel) {
-      sel.addEventListener('change', (e)=>{
-        const theme = e.target.value;
-        localStorage.setItem(THEME_KEY, theme);
-        applyTheme(theme);
+    const panel = document.getElementById('theme-panel');
+    const toggle = document.getElementById('theme-toggle');
+    const closeBtn = document.getElementById('close-theme');
+    const radios = document.querySelectorAll('input[name="theme"]');
+    const colorPicker = document.getElementById('customColor');
+    const geminiBtn = document.getElementById('gemini-btn');
+
+    // toggle panel
+    if(toggle) toggle.addEventListener('click', ()=>{ panel.classList.toggle('show'); panel.classList.remove('hidden'); });
+    if(closeBtn) closeBtn.addEventListener('click', ()=>{ panel.classList.remove('show'); });
+
+    // change theme
+    radios.forEach(r => r.addEventListener('change', e=>{
+      const theme = e.target.value;
+      localStorage.setItem(KEY, theme);
+      applyTheme(theme);
+    }));
+
+    // color picker
+    if(colorPicker){
+      colorPicker.addEventListener('input', e=>{
+        const c = e.target.value;
+        document.documentElement.style.setProperty('--bg', c);
+        localStorage.setItem(KEY_CUSTOM, c);
+      });
+    }
+
+    // Gemini button hook
+    if(geminiBtn){
+      geminiBtn.addEventListener('click', ()=>{
+        const chat = document.getElementById('gemini-chat-window');
+        if(chat){
+          chat.classList.remove('hidden');
+          setTimeout(()=>{ chat.classList.remove('translate-y-4','opacity-0'); }, 10);
+        }else{
+          const fab = document.getElementById('gemini-fab');
+          if(fab){ fab.click(); }
+          else{ alert('Gemini UI ยังไม่ถูกโหลดในหน้านี้'); }
+        }
       });
     }
   });
 })();
-// === END THEME SWITCHER =========================================
+// === END ===
