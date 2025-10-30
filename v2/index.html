@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Busisoft Portal - ศูนย์รวมแอปพลิเคชัน</title>
+
+    <link rel="icon" href="logo1.png" type="image/png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        :root { /* Base font size, will be controlled by JS */ }
+        body {
+            font-family: 'Sarabun', 'Inter', sans-serif;
+            background: linear-gradient(to bottom left, #dbeafe, #e0e7ff, #fbcfe8);
+            font-size: 1rem;
+            min-height: 100vh;
+        }
+        .text-primary { color: #60a5fa; }
+        .bg-primary { background-color: #60a5fa; }
+
+        /* [แก้ไข] Card Style: พื้นหลังโปร่งแสงขึ้น, ลดเส้นขอบ */
+        .app-card {
+            position: relative; display: flex; align-items: center;
+            background-color: rgba(255, 255, 255, 0.6); /* white/60 */
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* slightly lighter shadow */
+            border-radius: 0.75rem; /* rounded-lg */
+            transition: all 0.2s ease-in-out;
+            border: 1px solid rgba(229, 231, 235, 0.5); /* border-gray-200/50 */
+        }
+        .app-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            z-index: 10;
+        }
+        .app-card a { display: flex; width: 100%; height: 100%; border-radius: 0.75rem; }
+
+        /* Layouts */
+        .layout-grid .apps-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+        .layout-compact .apps-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+        .layout-list .apps-container { display: flex; flex-direction: column; gap: 0rem; }
+        .layout-list .app-card {
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5); /* border-gray-200/50 */
+            border-radius: 0;
+            box-shadow: none;
+            background-color: transparent; /* Full transparent on list mode */
+            border-left:none; border-right:none; border-top:none;
+        }
+        .layout-list .apps-container > .app-card:first-child { border-top: 1px solid rgba(229, 231, 235, 0.5); }
+        .layout-list .app-card:hover { background-color: rgba(255, 255, 255, 0.3); transform: none; box-shadow: none; } /* Lighter hover in list mode */
+
+
+        /* [แก้ไข] View Controls: พื้นหลังโปร่งแสงขึ้น, ลดเส้นขอบ */
+        .display-options-container .flex.items-center.gap-1,
+        .display-options-container .flex.items-center.bg-white\/70 {
+            background-color: rgba(255, 255, 255, 0.5); /* white/50 */
+            border: 1px solid rgba(229, 231, 235, 0.3); /* border-gray-200/30 */
+        }
+
+        .view-control-btn { background-color: #e5e7eb; border-radius: 0.375rem; transition: all 0.2s; line-height: 0; display: flex !important; align-items: center !important; justify-content: center !important; }
+        .view-control-btn:hover { background-color: #d1d5db; }
+        .view-control-btn.active { background-color: #60a5fa; color: white; }
+        #layout-grid-btn, #layout-compact-btn, #layout-list-btn { width: 36px !important; height: 36px !important; }
+        #layout-grid-btn svg, #layout-compact-btn svg, #layout-list-btn svg { width: 14px !important; height: 14px !important; stroke-width: 1.5 !important; }
+        #font-size-decrease-btn, #font-size-increase-btn, #reset-defaults-btn { width: 40px !important; height: 40px !important; }
+        #font-size-decrease-btn svg, #font-size-increase-btn svg, #reset-defaults-btn svg { width: 18px ; height: 18px; }
+
+        /* ขนาดไอคอนในกล่องแอป */
+        .app-icon img, .app-icon svg { width: 28px !important; height: 28px !important; object-fit: contain; }
+        .app-icon img[src^="https://cdn.simpleicons.org"] { width: 26px !important; height: 26px !important; filter: grayscale(10%); }
+        .app-icon img[src^="https://img.icons8.com"] { width: 32px !important; height: 32px !important; }
+
+        /* --- CSS สำหรับ Admin Mode --- */
+        #admin-panel { display: none; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(4px); }
+        body.admin-mode #admin-panel { display: block; }
+        .admin-controls { display: none; }
+        body.admin-mode .admin-controls { display: flex !important; }
+        .app-card.sortable-ghost, .category-section.sortable-ghost { background-color: #c7d2fe80; border-radius: 1rem; }
+        .drag-handle { display: none; cursor: grab; color: #9ca3af; padding: 0.5rem; }
+        body.admin-mode .drag-handle { display: flex; align-items: center; }
+        #admin-modal-overlay { transition: opacity 0.3s ease; background-color: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
+        #admin-modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .modal-input { width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 0.375rem; transition: all 0.2s; background-color: #f9fafb; }
+        .modal-input:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px #bfdbfe; outline: none; background-color: white;}
+
+        /* --- CSS สำหรับ Profile Dropdown --- */
+        #profile-dropdown { display: none; position: absolute; top: 110%; right: 0; background-color: white; color: #1f2937; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); width: 240px; z-index: 100; overflow: hidden; border: 1px solid #e5e7eb; }
+        body.profile-open #profile-dropdown { display: block; }
+        #admin-toggle-btn { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; width: 100%; transition: background-color 0.15s ease-in-out; border-bottom: 1px solid #e5e7eb; color: #4b5563; }
+        #admin-toggle-btn:hover { background-color: #f3f4f6; }
+        #admin-toggle-btn.admin-mode-active { background-color: #FEF2F2; color: #EF4444; font-weight: 500; }
+
+        .hidden { display: none !important; }
+        #recent-apps-section { display: none; }
+        .illustration-container svg { width: 100%; height: auto; display: block; }
+
+        #header-date-time-wrapper { display: none; }
+        @media (min-width: 768px) { #header-date-time-wrapper { display: block !important; } }
+        #header-time { font-size: 0.9rem; }
+
+        .header-logo { filter: brightness(0) invert(1); }
+
+        /* [แก้ไข] Font Balance & Heading Visibility */
+        .category-title {
+            font-weight: 700;
+            color: #3b82f6;
+            border-bottom-color: #bfdbfe;
+        }
+        .app-title {
+            font-weight: 700;
+            color: #1f2937;
+        }
+        .app-info {
+            color: #6b7280;
+        }
+        #hero-title {
+            color: #3b82f6;
+            font-weight: 700;
+        }
+        #hero-subtitle {
+            color: #4b5563;
+        }
+
+        /* [แก้ไข] Admin Button Colors เข้มขึ้น */
+        #add-category-btn { background-color: #60a5fa; color: white; }
+        #add-category-btn:hover { background-color: #3b82f6; }
+        #add-app-btn { background-color: #34d399; color: white;}
+        #add-app-btn:hover { background-color: #10b981; }
+        #admin-modal-save-btn { background-color: #3b82f6; }
+        #admin-modal-save-btn:hover { background-color: #2563eb; }
+
+        /* Header Style */
+        header {
+             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-primary text-white shadow-md sticky top-0 z-50">
+       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <img src="logo1.png" type="image/png" alt="Busisoft Logo" class="header-logo h-10 w-auto mr-3">
+                    <span class="inline-block text-xl font-semibold">Busisoft Portal</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div id="header-date-time-wrapper" class="text-right">
+                        <div id="header-date" class="text-sm font-medium leading-tight"></div>
+                        <div id="header-time" class="text-sm font-semibold leading-tight"></div>
+                    </div>
+                    <div class="relative">
+                        <button id="profile-toggle-btn" class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-base hover:bg-white/30 transition-colors"> Admin </button>
+                        <div id="profile-dropdown">
+                            <div class="p-4 border-b border-gray-100"> <div class="font-semibold">Admin</div> <div class="text-sm text-gray-500">admin@busisoft.co.th</div> </div>
+                            <button id="admin-toggle-btn" class=""> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> <span>Admin Mode</span> </button>
+                            <a href="#" class="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors"> <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg> <span>ออกจากระบบ</span> </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-8">
+            <div class="w-full md:w-2/5">
+                <h1 id="hero-title" class="text-3xl md:text-4xl font-bold mb-2">Application Hub</h1>
+                <p id="hero-subtitle" class="mt-1 text-lg">
+                    ศูนย์รวมแอปพลิเคชันและเครื่องมือสำหรับพนักงาน<br>
+                    เข้าถึงทุกระบบได้จากที่เดียว<br>
+                    <span class="font-semibold text-gray-700">Simple. Central. Connected.</span>
+                </p>
+            </div>
+            <div class="w-full md:w-3/5 flex items-center justify-center min-h-[180px] illustration-container bg-white/50 backdrop-filter backdrop-blur-sm p-4 rounded-lg shadow-sm border border-gray-200/50">
+                <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"> <defs> <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"> <stop offset="0%" style="stop-color:#E0F2FE;stop-opacity:1" /> <stop offset="100%" style="stop-color:#DBEAFE;stop-opacity:1" /> </linearGradient> <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%"> <stop offset="0%" style="stop-color:#BFDBFE;stop-opacity:1" /> <stop offset="100%" style="stop-color:#93C5FD;stop-opacity:1" /> /> </linearGradient> </defs> <rect width="400" height="200" fill="transparent" rx="8"/> <rect x="15" y="15" width="240" height="170" fill="url(#grad1)" rx="8"/> <rect x="25" y="25" width="220" height="30" fill="#FFF" rx="5"/> <rect x="35" y="32" width="50" height="16" fill="#E5E7EB" rx="4"/> <circle cx="230" cy="40" r="8" fill="#E5E7EB"/> <rect x="25" y="65" width="100" height="110" fill="#FFF" rx="5"/> <rect x="35" y="75" width="80" height="8" fill="#E5E7EB" rx="3"/> <rect x="35" y="90" width="60" height="6" fill="#F3F4F6" rx="3"/> <rect x="35" y="101" width="60" height="6" fill="#F3F4F6" rx="3"/> <path d="M 40 120 Q 55 110 70 120 T 100 120" stroke="#BFDBFE" stroke-width="2" fill="none"/> <circle cx="50" cy="145" r="15" fill="#EBF8FF"/> <circle cx="85" cy="145" r="15" fill="#EBF8FF"/> <rect x="135" y="65" width="100" height="50" fill="#FFF" rx="5"/> <rect x="145" y="75" width="40" height="10" fill="#D1FAE5" rx="3"/> <rect x="145" y="90" width="80" height="6" fill="#F3F4F6" rx="3"/> <rect x="145" y="101" width="80" height="6" fill="#F3F4F6" rx="3"/> <rect x="135" y="125" width="100" height="50" fill="#FFF" rx="5"/> <rect x="145" y="135" width="40" height="10" fill="#FEF3C7" rx="3"/> <rect x="145" y="150" width="80" height="6" fill="#F3F4F6" rx="3"/> <rect x="145" y="161" width="80" height="6" fill="#F3F4F6" rx="3"/> <rect x="265" y="15" width="120" height="170" fill="url(#grad2)" rx="8"/> <circle cx="325" cy="50" r="25" fill="#FFF"/> <path d="M315 50 L325 60 L335 40" stroke="#93C5FD" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <rect x="275" y="85" width="100" height="8" fill="#FFF" rx="3" opacity="0.7"/> <rect x="275" y="100" width="100" height="8" fill="#FFF" rx="3" opacity="0.7"/> <rect x="275" y="115" width="70" height="8" fill="#FFF" rx="3" opacity="0.7"/> <rect x="275" y="140" width="50" height="35" fill="#FFF" rx="5"/> <rect x="335" y="140" width="40" height="35" fill="#FFF" rx="5" opacity="0.5"/> </svg>
+            </div>
+        </div>
+
+        <div id="controls-bar" class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div class="search-container relative w-full md:flex-grow md:max-w-sm">
+                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>
+                 </div>
+                 <input type="search" id="search-box" placeholder="ค้นหาแอปพลิเคชัน..." class="w-full text-sm border-gray-300 rounded-md shadow-sm pl-10 focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 py-2.5">
+            </div>
+
+            <div class="display-options-container flex items-center gap-2">
+                <div class="flex items-center gap-1 bg-white/50 backdrop-filter backdrop-blur-sm p-1 rounded-md border border-gray-200/30">
+                    <button id="layout-grid-btn" class="view-control-btn" title="Grid View"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></button>
+                    <button id="layout-compact-btn" class="view-control-btn" title="Compact View"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3h3v3H3zM9 3h3v3H9zM15 3h3v3h-3zM3 9h3v3H3zM9 9h3v3H9zM15 9h3v3h-3zM3 15h3v3H3zM9 15h3v3H9zM15 15h3v3h-3z"/></svg></button>
+                    <button id="layout-list-btn" class="view-control-btn" title="List View"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
+                </div>
+
+                <div class="flex items-center bg-white/50 backdrop-filter backdrop-blur-sm p-1 rounded-md border border-gray-200/30">
+                    <button id="font-size-decrease-btn" class="view-control-btn" title="ลดขนาดตัวอักษร">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </button>
+                    <span id="font-size-display" class="text-sm font-medium text-gray-700 w-12 h-10 flex items-center justify-center bg-white rounded-sm mx-1 border border-gray-200">100%</span>
+                    <button id="font-size-increase-btn" class="view-control-btn" title="เพิ่มขนาดตัวอักษร">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </button>
+                    <button id="reset-defaults-btn" class="view-control-btn ml-1" title="Reset View">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <section id="admin-panel" class="mb-10 p-6 bg-white/80 backdrop-filter backdrop-blur-sm rounded-lg shadow-md border border-gray-200/50">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Admin Control Panel</h2>
+            <div class="flex items-center gap-4">
+                <button id="add-category-btn" class="font-semibold py-2 px-4 rounded-lg transition-colors">➕ เพิ่มหมวดหมู่ใหม่</button>
+                <button id="add-app-btn" class="font-semibold py-2 px-4 rounded-lg transition-colors">➕ เพิ่มแอปใหม่</button>
+            </div>
+        </section>
+
+        <section id="recent-apps-section" class="mb-10"></section>
+
+        <div id="dynamic-sections-container"></div>
+    </main>
+
+    <footer class="bg-primary text-white text-center mt-8 py-6">
+        <p class="opacity-90">&copy; 2025 Busisoft. All Rights Reserved.</p>
+        <div class="flex justify-center gap-6 mt-4">
+            <a href="https://busisoft.co.th/" target="_blank" rel="noopener noreferrer" title="Busisoft Website" class="hover:opacity-75 transition-opacity"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></a>
+            <a href="https://www.facebook.com/busisoftthai" target="_blank" rel="noopener noreferrer" title="Facebook" class="hover:opacity-75 transition-opacity"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
+            <a href="https://www.youtube.com/@busisoftthailand7568" target="_blank" rel="noopener noreferrer" title="YouTube" class="hover:opacity-75 transition-opacity"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2A29 29 0 0 0 23 11.75a29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg></a>
+            <a href="https://www.instagram.com/busisoft_official/" target="_blank" rel="noopener noreferrer" title="Instagram" class="hover:opacity-75 transition-opacity"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+        </div>
+    </footer>
+
+    <div id="admin-modal-overlay" class="hidden fixed inset-0 bg-black/40 backdrop-filter backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0">
+        <div id="admin-modal-content" class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 transform scale-95 opacity-0">
+            <div class="flex justify-between items-center mb-4 border-b pb-3"> <h3 id="admin-modal-title" class="text-2xl font-bold text-gray-800"></h3> <button id="admin-modal-close-btn" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button> </div>
+            <form id="admin-modal-form" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></form>
+            <div class="flex justify-end gap-3 mt-6 pt-4 border-t"> <button id="admin-modal-cancel-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-5 rounded-lg hover:bg-gray-300">ยกเลิก</button> <button id="admin-modal-save-btn" class="bg-primary text-white font-semibold py-2 px-5 rounded-lg hover:bg-blue-700">บันทึก</button> </div>
+        </div>
+    </div>
+
+    <button id="gemini-fab" class="fixed bottom-8 right-8 bg-primary text-white w-16 h-16 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors z-40"> <span class="text-3xl">🤖</span> </button>
+    <script>
+        // ... (JavaScript คงเดิมทั้งหมด) ...
+        const dynamicSectionsContainer = document.getElementById('dynamic-sections-container');
+        const searchBox = document.getElementById('search-box');
+        const layoutGridBtn = document.getElementById('layout-grid-btn');
+        const layoutCompactBtn = document.getElementById('layout-compact-btn');
+        const layoutListBtn = document.getElementById('layout-list-btn');
+        const fontSizeIncreaseBtn = document.getElementById('font-size-increase-btn');
+        const fontSizeDecreaseBtn = document.getElementById('font-size-decrease-btn');
+        const fontSizeDisplay = document.getElementById('font-size-display');
+        const resetDefaultsBtn = document.getElementById('reset-defaults-btn');
+        const headerDate = document.getElementById('header-date');
+        const headerTime = document.getElementById('header-time');
+        const profileToggleBtn = document.getElementById('profile-toggle-btn');
+        const adminToggleBtn = document.getElementById('admin-toggle-btn');
+        const addCategoryBtn = document.getElementById('add-category-btn');
+        const addAppBtn = document.getElementById('add-app-btn');
+        const modalOverlay = document.getElementById('admin-modal-overlay');
+        const modalContent = document.getElementById('admin-modal-content');
+        const modalTitle = document.getElementById('admin-modal-title');
+        const modalForm = document.getElementById('admin-modal-form');
+        const modalSaveBtn = document.getElementById('admin-modal-save-btn');
+        const modalCancelBtn = document.getElementById('admin-modal-cancel-btn');
+        const modalCloseBtn = document.getElementById('admin-modal-close-btn');
+        let allCategories = [];
+        let sortableInstances = [];
+        const BASE_FONT_SIZE = 16;
+        function openModal() { modalOverlay.classList.remove('hidden'); setTimeout(() => { modalOverlay.classList.remove('opacity-0'); modalContent.classList.remove('scale-95', 'opacity-0'); }, 10); }
+        function closeModal() { modalOverlay.classList.add('opacity-0'); modalContent.classList.add('scale-95', 'opacity-0'); setTimeout(() => { modalOverlay.classList.add('hidden'); modalForm.innerHTML = ''; modalSaveBtn.onclick = null; }, 300); }
+        [modalCancelBtn, modalCloseBtn].forEach(btn => btn.onclick = closeModal);
+        modalOverlay.onclick = (e) => { if (e.target === modalOverlay) closeModal(); };
+        function showCategoryModal(category = null) {
+            const isEditing = category !== null; modalTitle.textContent = isEditing ? 'แก้ไขหมวดหมู่' : 'สร้างหมวดหมู่ใหม่'; modalForm.innerHTML = `<div><label for="category-name" class="block text-sm font-medium text-gray-700">ชื่อหมวดหมู่</label><input type="text" id="category-name" class="modal-input mt-1" value="${isEditing ? category.title : ''}" required></div><div><label for="category-emoji" class="block text-sm font-medium text-gray-700">Emoji</label><input type="text" id="category-emoji" class="modal-input mt-1" value="${isEditing ? category.emoji : ''}"></div>`; modalSaveBtn.onclick = () => { const name = document.getElementById('category-name').value; if (!name) return alert('กรุณาใส่ชื่อหมวดหมู่'); const emoji = document.getElementById('category-emoji').value; if (isEditing) { const cat = allCategories.find(c => c.id === category.id); if (cat) { cat.title = name; cat.emoji = emoji; } } else { const newCat = { id: 'cat_' + Date.now(), title: name, emoji: emoji, order: allCategories.length, apps: [] }; allCategories.push(newCat); } closeModal(); renderPortal(); }; openModal();
+        }
+        function showAppModal(app = null, currentCategoryId = null) {
+            const isEditing = app !== null; modalTitle.textContent = isEditing ? 'แก้ไขแอปพลิเคชัน' : 'สร้างแอปใหม่'; const categoryOptions = allCategories.sort((a, b) => a.order - b.order).map(cat => `<option value="${cat.id}" ${cat.id === currentCategoryId ? 'selected' : ''}>${cat.title}</option>`).join(''); modalForm.innerHTML = `<div><label for="app-category" class="block text-sm font-medium text-gray-700">หมวดหมู่</label><select id="app-category" class="modal-input mt-1">${categoryOptions}</select></div><div><label for="app-name" class="block text-sm font-medium text-gray-700">ชื่อแอป</label><input type="text" id="app-name" class="modal-input mt-1" value="${isEditing ? app.name : ''}" required></div><div><label for="app-desc" class="block text-sm font-medium text-gray-700">คำอธิบาย</label><input type="text" id="app-desc" class="modal-input mt-1" value="${isEditing ? app.description : ''}"></div><div><label for="app-url" class="block text-sm font-medium text-gray-700">URL</label><input type="url" id="app-url" class="modal-input mt-1" value="${isEditing ? app.url : ''}" required></div><div><label for="app-icon" class="block text-sm font-medium text-gray-700">Icon URL (หรือ SVG)</label><textarea id="app-icon" rows="3" class="modal-input mt-1">${isEditing ? app.icon : ''}</textarea></div><div><label for="app-external" class="block text-sm font-medium text-gray-700"><input type="checkbox" id="app-external" class="mr-2" ${isEditing && app.isExternal ? 'checked' : (isEditing ? '' : 'checked')}> เปิดในแท็บใหม่</label></div>`; modalSaveBtn.onclick = () => { const newCategoryId = document.getElementById('app-category').value; const name = document.getElementById('app-name').value; if (!newCategoryId || !name) return alert('กรุณากรอกข้อมูลให้ครบ'); const appData = { name, description: document.getElementById('app-desc').value, url: document.getElementById('app-url').value, icon: document.getElementById('app-icon').value, isExternal: document.getElementById('app-external').checked }; if (isEditing) { const oldCat = allCategories.find(c => c.id === currentCategoryId); const appIndex = oldCat.apps.findIndex(a => a.id === app.id); if (appIndex === -1) return alert('ไม่พบแอป'); if (currentCategoryId === newCategoryId) { Object.assign(oldCat.apps[appIndex], appData); } else { const [movedApp] = oldCat.apps.splice(appIndex, 1); Object.assign(movedApp, appData); const newCat = allCategories.find(c => c.id === newCategoryId); movedApp.order = newCat.apps.length; newCat.apps.push(movedApp); } } else { const newCat = allCategories.find(c => c.id === newCategoryId); const newApp = { id: 'app_' + Date.now(), ...appData, order: newCat.apps.length }; newCat.apps.push(newApp); } closeModal(); renderPortal(); }; openModal();
+        }
+        addCategoryBtn.onclick = () => showCategoryModal(null, allCategories[0]?.id);
+        addAppBtn.onclick = () => showAppModal(null, allCategories[0]?.id);
+        adminToggleBtn.addEventListener('click', () => { document.body.classList.toggle('admin-mode'); adminToggleBtn.classList.toggle('admin-mode-active'); adminToggleBtn.querySelector('span').textContent = document.body.classList.contains('admin-mode') ? 'Exit Admin Mode' : 'Admin Mode'; document.body.classList.remove('profile-open'); renderPortal(); });
+        function attachAdminEventListeners() { document.querySelectorAll('.edit-category-btn').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); const cat = allCategories.find(c => c.id === btn.dataset.categoryId); if (cat) showCategoryModal(cat); }); document.querySelectorAll('.edit-app-btn').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); const { appId, categoryId } = btn.dataset; const app = allCategories.find(c => c.id === categoryId)?.apps.find(a => a.id === appId); if (app) showAppModal(app, categoryId); }); document.querySelectorAll('.delete-app-btn').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); if (!confirm('ยืนยันการลบแอป?')) return; const { appId, categoryId } = btn.dataset; const cat = allCategories.find(c => c.id === categoryId); if (!cat) return; const appIndex = cat.apps.findIndex(a => a.id === appId); if (appIndex > -1) { cat.apps.splice(appIndex, 1); renderPortal(); } }); document.querySelectorAll('.delete-category-btn').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); const cat = allCategories.find(c => c.id === btn.dataset.categoryId); if (cat.apps.length > 0) return alert('ต้องลบแอปทั้งหมดในหมวดนี้ก่อน'); if (!confirm(`ยืนยันการลบหมวดหมู่ "${cat.title}"?`)) return; const catIndex = allCategories.findIndex(c => c.id === cat.id); if (catIndex > -1) { allCategories.splice(catIndex, 1); renderPortal(); } }); }
+        function initializeAllSortables() { destroyAllSortables(); const containerSortable = new Sortable(dynamicSectionsContainer, { animation: 150, handle: '.drag-handle.category-handle', onEnd: (evt) => { dynamicSectionsContainer.querySelectorAll('.category-section').forEach((section, index) => { const cat = allCategories.find(c => c.id === section.dataset.categoryId); if(cat) cat.order = index; }); }}); sortableInstances.push(containerSortable); document.querySelectorAll('.apps-container').forEach(container => { const appSortable = new Sortable(container, { group: 'apps', animation: 150, handle: '.drag-handle.app-handle', onEnd: handleAppSortEnd, }); sortableInstances.push(appSortable); }); }
+        function handleAppSortEnd(evt) { const { item, from, to, oldIndex, newIndex } = evt; const appId = item.dataset.appId; const fromCategoryId = from.closest('.category-section').dataset.categoryId; const toCategoryId = to.closest('.category-section').dataset.categoryId; const fromCat = allCategories.find(c => c.id === fromCategoryId); const appIndex = fromCat.apps.findIndex(a => a.id === appId); if (appIndex === -1) return; const [app] = fromCat.apps.splice(appIndex, 1); const toCat = allCategories.find(c => c.id === toCategoryId); toCat.apps.splice(newIndex, 0, app); fromCat.apps.forEach((a, index) => a.order = index); if (fromCategoryId !== toCategoryId) { toCat.apps.forEach((a, index) => a.order = index); } }
+        function destroyAllSortables() { sortableInstances.forEach(i => i.destroy()); sortableInstances = []; }
+        function createAppCard(app, categoryId) { const appCard = document.createElement('div'); appCard.className = 'app-card'; appCard.dataset.appId = app.id; const defaultIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-500"><path d="M21.25 16.25V7.75a2 2 0 00-2-2H4.75a2 2 0 00-2 2v8.5a2 2 0 002 2h14.5a2 2 0 002-2zM2.75 8.75h18.5"/><path d="M7 11.75h3m-3 3h6"/></svg>`; let iconHtml = defaultIcon; if (app.icon && app.icon.trim().startsWith('<svg')) { iconHtml = app.icon; } else if (app.icon && (app.icon.startsWith('http') || app.icon.startsWith('/') || app.icon.startsWith('data:'))) { iconHtml = `<img src="${app.icon}" alt="${app.name} icon" class="">`; } const dragHandle = `<div class="drag-handle app-handle"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle><circle cx="5" cy="5" r="1"></circle><circle cx="5" cy="12" r="1"></circle><circle cx="5" cy="19" r="1"></circle></svg></div>`; const adminControls = `<div class="admin-controls absolute top-2 right-2 gap-1 z-10"><button data-app-id="${app.id}" data-category-id="${categoryId}" class="edit-app-btn bg-yellow-400 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm hover:bg-yellow-500">✏️</button><button data-app-id="${app.id}" data-category-id="${categoryId}" class="delete-app-btn bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-sm hover:bg-red-600">X</button></div>`; appCard.innerHTML = `${dragHandle}<a href="${app.url}" target="${app.isExternal ? '_blank' : '_self'}" rel="noopener noreferrer" class="flex-grow flex items-center p-4"><div class="app-icon mr-4 flex-shrink-0 w-10 h-10 flex items-center justify-center">${iconHtml}</div><div class="text-left"><h3 class="app-title">${app.name}</h3><p class="app-info">${app.description}</p></div></a>${adminControls}`; appCard.querySelector('a').onclick = (e) => { if (document.body.classList.contains('admin-mode')) e.preventDefault(); }; return appCard; }
+        function renderPortal() { const isAdminMode = document.body.classList.contains('admin-mode'); dynamicSectionsContainer.innerHTML = ''; allCategories.sort((a, b) => a.order - b.order).forEach(category => { const section = document.createElement('section'); section.className = 'category-section mb-10'; section.dataset.categoryId = category.id; if (category.apps.length === 0 && !isAdminMode) return; const dragHandle = `<div class="drag-handle category-handle"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle><circle cx="5" cy="5" r="1"></circle><circle cx="5" cy="12" r="1"></circle><circle cx="5" cy="19" r="1"></circle></svg></div>`; const adminCategoryControls = `<button data-category-id="${category.id}" class="edit-category-btn text-gray-500 hover:text-blue-500 ml-4 text-xs p-1 rounded-full">✏️</button><button data-category-id="${category.id}" class="delete-category-btn text-gray-500 hover:text-red-500 ml-1 text-xs p-1 rounded-full">🗑️</button>`; section.innerHTML = `<div class="flex items-center mb-4 border-b border-blue-200/50 pb-2">${dragHandle}<h2 class="category-title text-xl text-primary">${category.emoji || '📁'} ${category.title}</h2>${isAdminMode ? adminCategoryControls : ''}</div><div class="apps-container"></div>`; const gridContainer = section.querySelector('.apps-container'); (category.apps || []).sort((a,b) => a.order - b.order).forEach(app => gridContainer.appendChild(createAppCard(app, category.id))); dynamicSectionsContainer.appendChild(section); }); isAdminMode ? (attachAdminEventListeners(), initializeAllSortables()) : destroyAllSortables(); adminToggleBtn.classList.toggle('admin-mode-active', isAdminMode); adminToggleBtn.querySelector('span').textContent = isAdminMode ? 'Exit Admin Mode' : 'Admin Mode'; }
+        function applyLayout(layoutName) { document.body.classList.remove('layout-grid', 'layout-compact', 'layout-list'); document.body.classList.add(`layout-${layoutName}`); [layoutGridBtn, layoutCompactBtn, layoutListBtn].forEach(btn => btn.classList.remove('active')); document.getElementById(`layout-${layoutName}-btn`).classList.add('active'); localStorage.setItem('portalLayout', layoutName); }
+        function updateFontSizeDisplay() { const currentSize = parseFloat(localStorage.getItem('portalFontSize')) || BASE_FONT_SIZE; const percentage = Math.round((currentSize / BASE_FONT_SIZE) * 100); fontSizeDisplay.textContent = `${percentage}%`; document.documentElement.style.fontSize = `${currentSize}px`; }
+        function changeFontSize(delta) { let currentSize = parseFloat(localStorage.getItem('portalFontSize')) || BASE_FONT_SIZE; let newSize = currentSize + delta; if (newSize < 12) newSize = 12; if (newSize > 20) newSize = 20; localStorage.setItem('portalFontSize', newSize); updateFontSizeDisplay(); }
+        function handleSearch() { const searchTerm = searchBox.value.toLowerCase().trim(); document.querySelectorAll('.category-section').forEach(section => { let hasVisibleApp = false; section.querySelectorAll('.app-card').forEach(card => { const isVisible = card.textContent.toLowerCase().includes(searchTerm); card.style.display = isVisible ? 'flex' : 'none'; if(isVisible) hasVisibleApp = true; }); section.style.display = hasVisibleApp || document.body.classList.contains('admin-mode') ? 'block' : 'none'; }); }
+        function updateDateTime() { const now = new Date(); const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Bangkok' }; const timeOptions = { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Bangkok' }; let thaiDate = new Intl.DateTimeFormat('th-TH-u-ca-buddhist', dateOptions).format(now); let time = now.toLocaleTimeString('en-US', timeOptions); if (headerDate) headerDate.textContent = thaiDate; if (headerTime) headerTime.textContent = time; }
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('firebase-data-modified.json')
+                .then(response => { if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } return response.json(); })
+                .then(data => { allCategories = Object.values(data.categories); allCategories.forEach((cat, cIdx) => { cat.id = cat.id || `cat_${cIdx}`; cat.apps.forEach((app, aIdx) => { app.id = app.id || `app_${cIdx}_${aIdx}`; }); }); renderPortal(); })
+                .catch(error => { console.error("Error fetching data:", error); dynamicSectionsContainer.innerHTML = `<p class="text-red-500">Error: ไม่สามารถโหลดข้อมูลได้ กรุณาตรวจสอบไฟล์ 'firebase-data-modified.json'</p>`; })
+                .finally(() => { setupUIControls(); });
+
+            function setupUIControls() {
+                const defaultLayout = 'grid'; applyLayout(localStorage.getItem('portalLayout') || defaultLayout); updateFontSizeDisplay(); layoutGridBtn.addEventListener('click', () => applyLayout('grid')); layoutCompactBtn.addEventListener('click', () => applyLayout('compact')); layoutListBtn.addEventListener('click', () => applyLayout('list')); fontSizeIncreaseBtn.addEventListener('click', () => changeFontSize(1)); fontSizeDecreaseBtn.addEventListener('click', () => changeFontSize(-1)); searchBox.addEventListener('input', handleSearch); resetDefaultsBtn.addEventListener('click', () => { applyLayout(defaultLayout); localStorage.setItem('portalFontSize', BASE_FONT_SIZE); updateFontSizeDisplay(); }); updateDateTime(); setInterval(updateDateTime, 1000); profileToggleBtn.addEventListener('click', (e) => { e.stopPropagation(); document.body.classList.toggle('profile-open'); }); document.addEventListener('click', (e) => { const dropdown = document.getElementById('profile-dropdown'); if (dropdown && !profileToggleBtn.contains(e.target) && !dropdown.contains(e.target)) { document.body.classList.remove('profile-open'); } });
+            }
+        });
+    </script>
+
+    <script src="gemini-logic.js"></script>
+</body>
+</html>
