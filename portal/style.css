@@ -1,0 +1,451 @@
+:root { /* Base font size, will be controlled by JS */ }
+body { font-family: 'Sarabun', 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 1rem; min-height: 100vh; }
+.text-primary { color: var(--accent); }
+.bg-primary { background-color: var(--accent); }
+
+/* Card Style: default (classic/plain) */
+.app-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: var(--surface);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+    border-radius: 0.75rem;
+    transition: all 0.2s ease-in-out;
+    border: 1px solid rgba(229, 231, 235, 0.6);
+    backdrop-filter: blur(var(--glass-blur, 10px));
+    -webkit-backdrop-filter: blur(var(--glass-blur, 10px));
+}
+html[data-theme="glass"] .app-card {
+    background-color: rgba(255, 255, 255, 0.40);
+    border: 1px solid rgba(255, 255, 255, 0.60);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.app-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    z-index: 10;
+}
+.app-card a { display: flex; width: 100%; height: 100%; border-radius: 0.75rem; }
+
+/* Layouts */
+.layout-grid .apps-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
+.layout-compact .apps-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+.layout-list .apps-container { display: flex; flex-direction: column; gap: 0rem; }
+.layout-list .app-card {
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5); border-radius: 0; box-shadow: none;
+    background-color: transparent; border-left:none; border-right:none; border-top:none;
+    /* --- เพิ่ม --- */
+    backdrop-filter: none; /* ลบ effect กระจกฝ้าใน list view */
+    -webkit-backdrop-filter: none;
+    /* --- จบ --- */
+}
+.layout-list .apps-container > .app-card:first-child { border-top: 1px solid rgba(229, 231, 235, 0.5); }
+.layout-list .app-card:hover { background-color: rgba(255, 255, 255, 0.3); transform: none; box-shadow: none; }
+
+/* View Controls */
+.display-options-container .flex.items-center.gap-1,
+.display-options-container .flex.items-center.bg-white\/70 {
+    background-color: rgba(255, 255, 255, 0.5); border: 1px solid rgba(229, 231, 235, 0.3);
+}
+.view-control-btn { background-color: #e5e7eb; border-radius: 0.375rem; transition: all 0.2s; line-height: 0; display: flex !important; align-items: center !important; justify-content: center !important; }
+.view-control-btn:hover { background-color: #d1d5db; }
+.view-control-btn.active { background-color: #60a5fa; color: white; }
+#layout-grid-btn, #layout-compact-btn, #layout-list-btn { width: 38px !important; height: 38px !important; }
+#layout-grid-btn svg, #layout-compact-btn svg, #layout-list-btn svg { width: 16px !important; height: 16px !important; stroke-width: 1.5 !important; }
+#font-size-decrease-btn, #font-size-increase-btn, #reset-defaults-btn { width: 38px !important; height: 38px !important; }
+#font-size-decrease-btn svg, #font-size-increase-btn svg, #reset-defaults-btn svg { width: 16px !important; height: 16px !important; }
+
+/* App Icon Size */
+.app-icon img, .app-icon svg { width: 28px !important; height: 28px !important; object-fit: contain; }
+.app-icon img[src^="https://cdn.simpleicons.org"] { width: 26px !important; height: 26px !important; filter: grayscale(10%); }
+.app-icon img[src^="https://img.icons8.com"] { width: 32px !important; height: 32px !important; }
+
+/* Admin Mode */
+#admin-panel { display: none; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(4px); }
+body.admin-mode #admin-panel { display: block; }
+.admin-controls { display: none; }
+body.admin-mode .admin-controls { display: flex !important; }
+.app-card.sortable-ghost, .category-section.sortable-ghost { background-color: #c7d2fe80; border-radius: 1rem; }
+.drag-handle { display: none; cursor: grab; color: #9ca3af; padding: 0.5rem; }
+body.admin-mode .drag-handle { display: flex; align-items: center; }
+#admin-modal-overlay { transition: opacity 0.3s ease; background-color: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
+#admin-modal-content { transition: transform 0.3s ease, opacity 0.3s ease; }
+.modal-input { width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 0.375rem; transition: all 0.2s; background-color: #f9fafb; }
+.modal-input:focus { border-color: #60a5fa; box-shadow: 0 0 0 3px #bfdbfe; outline: none; background-color: white;}
+
+/* Profile Dropdown */
+#profile-dropdown { display: none; position: absolute; top: 110%; right: 0; background-color: white; color: #1f2937; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); width: 240px; z-index: 100; overflow: hidden; border: 1px solid #e5e7eb; }
+body.profile-open #profile-dropdown { display: block; }
+#admin-toggle-btn { display: flex; align-items: center; gap: 0.75rem; padding: 1rem; width: 100%; transition: background-color 0.15s ease-in-out; border-bottom: 1px solid #e5e7eb; color: #4b5563; }
+#admin-toggle-btn:hover { background-color: #f3f4f6; }
+#admin-toggle-btn.admin-mode-active { background-color: #FEF2F2; color: #EF4444; font-weight: 500; }
+
+/* Utility */
+.hidden { display: none !important; }
+#recent-apps-section { display: none; }
+
+/* [แก้ไข] Image Fitting */
+.illustration-container svg, .illustration-container img {
+    width: 100%;
+    height: 100%; /* ทำให้รูปภาพปรับความสูงให้เต็มกรอบ */
+    object-fit: contain; /* รักษาอัตราส่วนและให้พอดีกับกรอบ */
+    display: block;
+    backdrop-filter: blur(var(--glass-blur, 10px));
+    -webkit-backdrop-filter: blur(var(--glass-blur, 10px));
+}
+.illustration-container img {
+    max-height: 250px; /* กำหนดความสูงสูงสุด */
+    /* object-fit: contain; <-- ซ้ำกับข้างบน ลบออกได้ */
+    border-radius: 0.375rem;
+}
+
+/* เอากรอบเทาๆของ .illustration-container ออก */
+.illustration-container {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 1px !important;
+}
+
+/* Header Date/Time */
+#header-date-time-wrapper { display: none; }
+@media (min-width: 768px) { #header-date-time-wrapper { display: block !important; } }
+#header-time { font-size: 0.9rem; }
+.header-logo { filter: brightness(0) invert(1); }
+html[data-theme="dark"] .header-logo { filter: brightness(0) invert(1); }
+
+/* Typography */
+h3 { color: var(--text); }
+p { font-weight: 500; }
+.category-title { font-weight: 700; color: var(--accent); border-bottom-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.app-title { font-weight: 700; color: var(--text); }
+.app-info { color: var(--text); }
+#hero-title { color: var(--accent); font-weight: 700; }
+#hero-subtitle { color: var(--muted); }
+
+/* Admin Buttons */
+#add-category-btn { background-color: #60a5fa; color: white; }
+#add-category-btn:hover { background-color: #3b82f6; }
+#add-app-btn { background-color: #34d399; color: white;}
+#add-app-btn:hover { background-color: #10b981; }
+#admin-modal-save-btn { background-color: #3b82f6; }
+#admin-modal-save-btn:hover { background-color: #2563eb; }
+
+/* Header Style */
+header { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+
+/* === Theme Manager Side Panel === */
+.theme-toggle-mini{
+  position:fixed; top:50%; right:0; transform:translateY(-50%);
+  width:12px; height:72px; border-top-left-radius:10px; border-bottom-left-radius:10px;
+  background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-left:1px solid rgba(0,0,0,.05);
+  box-shadow: 0 8px 18px rgba(0,0,0,.25);
+  cursor:pointer; z-index:9999;
+  /* ลบ background ลายขีด ๆ ออกให้หมด */
+  background-image: none !important;
+}
+.theme-panel{
+  position:fixed; top:0; right:-320px; width:320px; height:100vh;
+  background: var(--surface, #fff); color: var(--text, #111827);
+  backdrop-filter: blur(var(--glass-blur, 10px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 10px));
+  border-left:1px solid var(--border, rgba(0,0,0,.1));
+  box-shadow: -10px 0 24px rgba(0,0,0,.25);
+  transition:right .28s ease; z-index:9998; padding:14px 14px 90px; overflow:auto;
+}
+.theme-panel.show{ right:0; }
+.theme-panel.hidden{}
+
+.theme-panel-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.theme-panel .title{font-weight:700}
+.close-btn{border:1px solid var(--border, rgba(0,0,0,.1)); background:rgba(255,255,255,.6); border-radius:8px; height:32px; width:32px; cursor:pointer}
+
+.section{margin:10px 0 14px}
+.section-title{font-size:.9rem; font-weight:600; margin-bottom:8px}
+.theme-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px;}
+.theme-grid label{display:flex; align-items:center; gap:6px; padding:6px; border:1px solid var(--border, rgba(0,0,0,.1)); border-radius:8px; background:rgba(255,255,255,.65); cursor:pointer}
+
+.palette-grid{display:grid; grid-template-columns: repeat(6, 1fr); gap:6px;}
+.palette-swatch{
+  height:24px; border-radius:6px; border:1px solid var(--border, rgba(0,0,0,.1)); cursor:pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+.form-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.form-grid label{display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(255,255,255,.55); padding:6px 8px; border-radius:8px; border:1px solid var(--border, rgba(0,0,0,.1))}
+.form-grid input[type="color"]{width:42px; height:28px; padding:0; border:1px solid var(--border, rgba(0,0,0,.1)); background:#fff; border-radius:6px; cursor:pointer}
+
+.form-stack{display:grid; gap:8px}
+.form-stack label{display:flex; align-items:center; justify-content:space-between; gap:10px; background:rgba(255,255,255,.55); padding:6px 8px; border-radius:8px; border:1px solid var(--border, rgba(0,0,0,.1))}
+.form-stack input[type="range"]{width:160px}
+
+/* 1. Slider/Range Container */
+html[data-theme="dark"] .form-stack label {
+  background: rgba(36,41,46,0.85) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(80,80,80,0.25) !important;
+}
+
+.theme-actions{display:flex; gap:8px; margin-top:8px}
+.theme-actions button{
+  flex:1; padding:8px; border-radius:8px; border:1px solid var(--border, rgba(0,0,0,.1));
+  background: rgba(255,255,255,.65); cursor:pointer; font-size:13px;
+}
+.theme-actions button:hover{ background: rgba(255,255,255,.9); }
+
+html[data-theme="dark"] .view-control-btn,
+html[data-theme="dark"] .form-grid label,
+html[data-theme="dark"] .theme-grid label,
+html[data-theme="dark"] .theme-actions button {
+  background-color: rgba(36, 41, 46, 0.85) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(80, 80, 80, 0.25) !important;
+}
+html[data-theme="dark"] .view-control-btn.active {
+  background-color: var(--accent, #60a5fa) !important;
+  color: #fff !important;
+}
+
+html[data-theme="dark"] input[type="search"],
+html[data-theme="dark"] input[type="text"] {
+  background: rgba(36,41,46,0.92) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(80,80,80,0.25) !important;
+}
+html[data-theme="dark"] #layout-grid-btn,
+html[data-theme="dark"] #layout-compact-btn,
+html[data-theme="dark"] #layout-list-btn {
+  background: rgba(36,41,46,0.85) !important;
+  color: #e5e7eb !important;
+  border-color: rgba(80,80,80,0.25) !important;
+}
+html[data-theme="dark"] #layout-grid-btn.active,
+html[data-theme="dark"] #layout-compact-btn.active,
+html[data-theme="dark"] #layout-list-btn.active {
+  background: var(--accent, #60a5fa) !important;
+  color: #fff !important;
+}
+
+/* 2. Layout Control - กล่อง 100% และปุ่มควบคุม */
+.view-control-btn,
+#font-size-decrease-btn,
+#font-size-increase-btn,
+#reset-defaults-btn {
+  border-radius: 0.75rem !important;
+  border: none !important;
+  background: var(--surface, #fff);
+}
+html[data-theme="dark"] .view-control-btn,
+html[data-theme="dark"] #font-size-decrease-btn,
+html[data-theme="dark"] #font-size-increase-btn,
+html[data-theme="dark"] #reset-defaults-btn {
+  background: rgba(36,41,46,0.85) !important;
+  color: #e5e7eb !important;
+  border: none !important;
+}
+
+.display-options-container input,
+.display-options-container .font-size-display {
+  border-radius: 0.75rem !important;
+  border: none !important;
+  background: var(--surface, #fff);
+  color: var(--text, #111827);
+  padding: 0 12px;
+}
+html[data-theme="dark"] .display-options-container input,
+html[data-theme="dark"] .display-options-container .font-size-display {
+  background: rgba(36,41,46,0.92) !important;
+  color: #e5e7eb !important;
+  border: none !important;
+}
+
+/* 3. Icon ในปุ่ม layout */
+.view-control-btn svg,
+#font-size-decrease-btn svg,
+#font-size-increase-btn svg,
+#reset-defaults-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  filter: none !important;
+  color: var(--text) !important; /* text-gray-400 */
+  stroke: var(--text) !important;
+}
+
+/* ปรับสี icon ปุ่ม zoom ใน dark mode ให้เหมือนกับแว่นขยายในช่อง search (text-gray-400) */
+html[data-theme="dark"] #font-size-decrease-btn svg,
+html[data-theme="dark"] #font-size-increase-btn svg,
+html[data-theme="dark"] #reset-defaults-btn svg {
+  filter: none !important;
+  color: #9ca3af !important;
+  stroke: #9ca3af !important;
+}
+
+/* Invert icon in dark mode for visibility */
+/* เปลี่ยน logic: เฉพาะ .app-icon.icon-darkonly เท่านั้น */
+html[data-theme="dark"] .app-icon.icon-darkonly img,
+html[data-theme="dark"] .app-icon.icon-darkonly svg {
+  filter: invert(1) brightness(2.5) !important;
+}
+
+/* 1. Icon ปุ่ม layout เฉพาะ 3 ปุ่มซ้าย */
+#layout-grid-btn svg,
+#layout-compact-btn svg,
+#layout-list-btn svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+/* 1. Icon ปุ่ม layout ให้อยู่กลางปุ่มจริง */
+.view-control-btn svg {
+  display: block;
+  width: 24px !important;
+  height: 24px !important;
+}
+
+/* 2. กล่อง font-size-display ให้เท่ากล่องแรก */
+#font-size-display, .font-size-display {
+  background: var(--surface, #f3f4f6) !important;
+  color: #374151 !important; /* text-gray-700 (dark gray) */
+  font-weight: 400 !important;
+  font-size: 0.95rem !important;
+  letter-spacing: 0.01em !important;
+  text-shadow: 0 0 2px rgba(0,0,0,0.10), 0 1px 0 rgba(0,0,0,0.08);
+}
+html[data-theme="dark"] #font-size-display,
+html[data-theme="dark"] .font-size-display {
+  background: rgba(36,41,46,0.85) !important;
+  color: #e5e7eb !important;
+  border: none !important;
+}
+
+/* ปรับสีเลข 100% ในกล่อง font-size-display ให้จางลงเหมือนตัวหนังสือทั่วไป (ใช้ #6b7280 = text-gray-500) */
+#font-size-display, .font-size-display {
+  color: #6b7280 !important;
+}
+html[data-theme="dark"] #font-size-display,
+html[data-theme="dark"] .font-size-display {
+  color: #e5e7eb !important;
+}
+
+/* 3. ปุ่มซูม (+/-/รีเซ็ต) */
+#font-size-decrease-btn,
+#font-size-increase-btn,
+#reset-defaults-btn {
+  border-radius: 0.75rem !important;
+  border: none !important;
+  background: var(--surface, #f3f4f6) !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+html[data-theme="dark"] #font-size-decrease-btn,
+html[data-theme="dark"] #font-size-increase-btn,
+html[data-theme="dark"] #reset-defaults-btn {
+  background: rgba(36,41,46,0.85) !important;
+  color: #e5e7eb !important;
+}
+
+/* 4. ให้กล่อง 2 ชุดขนาดเท่ากัน */
+.display-options-container .flex {
+  gap: 6px !important;
+}
+
+/* === Theme variable overrides applied globally === */
+body{
+  background: var(--bg) !important;
+  color: var(--text);
+}
+.text-primary { color: var(--accent); }
+.bg-primary { background-color: var(--accent); }
+.app-card{
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(var(--glass-blur, 10px)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur, 10px)) !important;
+  border-radius: var(--radius, 12px) !important;
+  box-shadow: 0 8px 24px var(--shadow-color);
+}
+.category-title{ color: var(--accent, #3b82f6) !important; border-bottom-color: color-mix(in oklab, var(--accent), white 70%); }
+.view-control-btn.active{ background-color: var(--accent, #60a5fa) !important; }
+.illustration-container{ background-color: var(--surface-2, rgba(255,255,255,.6)) !important; border-color: var(--border, rgba(0,0,0,.08)) !important; }
+header.bg-primary { background-color: var(--accent); }
+footer.bg-primary { background-color: var (--accent); }
+
+/* ปรับกล่องปุ่ม layout + font-size ให้เหมือนช่อง search */
+.display-options-container .flex {
+  background: rgba(255,255,255,0.5) !important;
+  border-radius: 0.75rem !important;
+  padding: 1px !important;
+  box-shadow: none !important;
+  gap: 4px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  align-items: center !important;
+}
+html[data-theme="dark"] .display-options-container .flex {
+  background: rgba(36,41,46,0.92) !important;
+  border: 1px solid rgba(80,80,80,0.25) !important;
+}
+html[data-theme="neon"] .display-options-container .flex {
+  background: rgba(36,41,46,0.92) !important;
+  border: 1px solid rgba(80,80,80,0.25) !important;
+}
+
+/* ปุ่ม layout + font-size-display + ปุ่มซูม ให้เหมือน search */
+.view-control-btn,
+#font-size-decrease-btn,
+#font-size-increase-btn,
+#reset-defaults-btn,
+#font-size-display, .font-size-display {
+  background: transparent !important;
+  border-radius: 0.5rem !important;
+  border: none !important;
+  color: var(--text, #111827) !important;
+  box-shadow: none !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 40px !important;
+}
+html[data-theme="dark"] .view-control-btn,
+html[data-theme="dark"] #font-size-decrease-btn,
+html[data-theme="dark"] #font-size-increase-btn,
+html[data-theme="dark"] #reset-defaults-btn,
+html[data-theme="dark"] #font-size-display,
+html[data-theme="dark"] .font-size-display {
+  background: transparent !important;
+  color: #e5e7eb !important;
+}
+
+/* ปุ่ม active ใช้ accent */
+.view-control-btn.active {
+  background: var(--accent, #60a5fa) !important;
+  color: #fff !important;
+}
+
+/* ลบ .bg-white, .text-gray-700 สีเทาโดดๆ */
+.bg-white {
+  background: transparent !important;
+}
+.text-gray-700 {
+  color: var(--text, #111827) !important;
+}
+html[data-theme="dark"] .text-gray-700 {
+  color: #e5e7eb !important;
+}
+.text-gray-400 {
+  color: var(--text) !important;
+}
+html[data-theme="dark"] .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+/* Invert icon in dark mode for visibility */
+html[data-theme="dark"] .app-icon img,
+html[data-theme="dark"] .app-icon svg {
+}
+
+
